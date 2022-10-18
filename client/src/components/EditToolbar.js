@@ -16,6 +16,9 @@ function EditToolbar() {
     function handleUndo() {
         store.undo();
     }
+    function handleAddSong() {
+        store.addSong();
+    }
     function handleRedo() {
         store.redo();
     }
@@ -38,7 +41,7 @@ function EditToolbar() {
                 disabled={editStatus}
                 value="+"
                 className={enabledButtonClass}
-                onClick={handleAdd}
+                onClick={handleAddSong}
 
             />
             <input

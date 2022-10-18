@@ -48,7 +48,15 @@ function ListCard(props) {
     }
     function handleUpdateText(event) {
         setText(event.target.value );
+    } 
+    function handleDeleteList(event) {
+        event.stopPropagation();
+        let _id = event.target.id;
+        _id = ("" + _id).substring("delete-list-".length);
+        store.ListObjectforDeletion(_id);
     }
+    
+
 
     let selectClass = "unselected-list-card";
     if (selected) {
@@ -75,6 +83,7 @@ function ListCard(props) {
                 type="button"
                 id={"delete-list-" + idNamePair._id}
                 className="list-card-button"
+                onClick={handleDeleteList}
                 value={"\u2715"}
             />
             <input

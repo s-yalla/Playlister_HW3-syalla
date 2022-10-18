@@ -87,9 +87,56 @@ getPlaylistPairs = async (req, res) => {
     }).catch(err => console.log(err))
 }
 
+
+updatePlaylist = async (inp1, inp2) => {
+    const mid = inp1.body
+    if (!mid) {
+        return inp2.status(400).json({
+            success: false,
+            error: '',
+        })
+    }
+
+    Playlist.findOne({ _id: inp1.params.id }, (errorMessage, playListObj) => {
+        if (errorMessage) {
+            return inp2.status(404).json({
+                errorMessage,
+                message: '',
+            })
+        }
+        Playlist.name = mid.name
+        Playlist.items = mid.items
+        Playlist
+            .save()
+            .then(() => {
+                return inp2.status(200).json({
+                    success: true,
+                    id: playListObj._id,
+                    message: '',
+                })
+            })
+            .catch(error => {
+                return inp2.status(404).json({
+                    error,
+                    message: '',
+                })
+            })
+    })
+}
+deleteListById = async (inp1, inp2) => {
+    await Playlist.findOneAndDelete({ _id: inp1.params.id }, () => 
+    {
+        return inp2.status(200).json({ success: true});
+    }).catch(err =>  {
+        return inp2.status(400).json({ success: false })
+    })
+}
+
 module.exports = {
     createPlaylist,
     getPlaylists,
     getPlaylistPairs,
-    getPlaylistById
+    getPlaylistById,
+    deleteListById,
+    updatePlaylist
 }

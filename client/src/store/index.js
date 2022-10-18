@@ -16,7 +16,9 @@ export const GlobalStoreActionType = {
     CLOSE_CURRENT_LIST: "CLOSE_CURRENT_LIST",
     CREATE_NEW_LIST: "CREATE_NEW_LIST",
     LOAD_ID_NAME_PAIRS: "LOAD_ID_NAME_PAIRS",
-    SET_CURRENT_LIST: "SET_CURRENT_LIST",
+    SET_CURRENT_LIST: "SET_CURRENT_LIST", 
+    MARK_LIST_FOR_DELETION: "MARK_LIST_FOR_DELETION",
+    EMPTY_ALL: "EMPTY_ALL",
     SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE",
 }
 
@@ -31,7 +33,9 @@ export const useGlobalStore = () => {
         idNamePairs: [],
         currentList: null,
         newListCounter: 0,
-        listNameActive: false
+        listNameActive: false,
+        listToBeDeleted : null,
+
     });
 
     // HERE'S THE DATA STORE'S REDUCER, IT MUST
@@ -45,7 +49,8 @@ export const useGlobalStore = () => {
                     idNamePairs: payload.idNamePairs,
                     currentList: payload.playlist,
                     newListCounter: store.newListCounter,
-                    listNameActive: false
+                    listNameActive: false,
+                    listToBeDeleted : store.listToBeDeleted
                 });
             }
             // STOP EDITING THE CURRENT LIST
@@ -54,7 +59,9 @@ export const useGlobalStore = () => {
                     idNamePairs: store.idNamePairs,
                     currentList: null,
                     newListCounter: store.newListCounter,
-                    listNameActive: false
+                    listNameActive: false,
+                    listToBeDeleted : store.listToBeDeleted
+
                 })
             }
             // CREATE A NEW LIST
@@ -63,7 +70,9 @@ export const useGlobalStore = () => {
                     idNamePairs: store.idNamePairs,
                     currentList: payload,
                     newListCounter: store.newListCounter + 1,
-                    listNameActive: false
+                    listNameActive: false,
+                    listToBeDeleted : store.listToBeDeleted
+
                 })
             }
             // GET ALL THE LISTS SO WE CAN PRESENT THEM
@@ -72,7 +81,9 @@ export const useGlobalStore = () => {
                     idNamePairs: payload,
                     currentList: null,
                     newListCounter: store.newListCounter,
-                    listNameActive: false
+                    listNameActive: false,
+                    listToBeDeleted : store.listToBeDeleted
+
                 });
             }
             // PREPARE TO DELETE A LIST
@@ -81,7 +92,9 @@ export const useGlobalStore = () => {
                     idNamePairs: store.idNamePairs,
                     currentList: null,
                     newListCounter: store.newListCounter,
-                    listNameActive: false
+                    listNameActive: false,
+                    listToBeDeleted : payload
+
                 });
             }
             // UPDATE A LIST
@@ -90,7 +103,18 @@ export const useGlobalStore = () => {
                     idNamePairs: store.idNamePairs,
                     currentList: payload,
                     newListCounter: store.newListCounter,
-                    listNameActive: false
+                    listNameActive: false,
+                    listToBeDeleted : store.listToBeDeleted
+
+                });
+            }
+            case GlobalStoreActionType.MARK_LIST_FOR_DELETION: {
+                return setStore({
+                    idNamePairs: payload,
+                    currentList: null,
+                    newListCounter: store.newListCounter,
+                    listNameActive: false,
+                    listToBeDeleted: null
                 });
             }
             // START EDITING A LIST NAME
@@ -99,9 +123,20 @@ export const useGlobalStore = () => {
                     idNamePairs: store.idNamePairs,
                     currentList: payload,
                     newListCounter: store.newListCounter,
-                    listNameActive: true
+                    listNameActive: true,
+                    listToBeDeleted: null
                 });
             }
+            case GlobalStoreActionType.EMPTY_ALL: {
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: null,
+                    newListCounter: store.newListCounter,
+                    listNameActive: false,
+                    listToBeDeleted: null
+                });
+            }
+            
             default:
                 return store;
         }
@@ -116,7 +151,7 @@ export const useGlobalStore = () => {
         async function asyncChangeListName(id) {
             let response = await api.getPlaylistById(id);
             if (response.data.success) {
-                let playlist = response.data.playist;
+                let playlist = response.data.playlist;
                 playlist.name = newName;
                 async function updateList(playlist) {
                     response = await api.updatePlaylistById(playlist._id, playlist);
@@ -189,23 +224,7 @@ export const useGlobalStore = () => {
     store.getPlaylistSize = function() {
         return store.currentList.songs.length;
     }
-
-    store.createNewList = function() {
-        async function async_Create_play_lists()
-        {
-            let list_inp = {name:"NewSong",songs:[]};
-            const dBpayload = list_inp;
-            //get response
-            await api.create_play_lists(dBpayload);
-            storeReducer
-            ({
-                type: GlobalStoreActionType.CREATE_NEW_LIST,
-                payload: dBpayload
-            });
-            store.history.push("/playlist/"+list_inp._id);
-        }
-        async_Create_play_lists();
-    }
+    
 
     store.undo = function () {
         tps.undoTransaction();
@@ -220,6 +239,82 @@ export const useGlobalStore = () => {
             type: GlobalStoreActionType.SET_LIST_NAME_EDIT_ACTIVE,
             payload: null
         });
+    }      
+    // Custom Functions beginning from here
+    store.editSong = (inputObj) =>
+    {
+
+    }
+    store.createNewList = function (){
+
+		let emptyValue = 
+		{ 
+        "name": "Untitled",
+        "songs": []
+		};
+        async function asyncCreateNewList() 
+		{
+            var resp = await api.createPlay_List(emptyValue)
+            if (resp.data.success) 
+			{
+                var toBePsushed = resp.data.playlist;
+                storeReducer
+				({
+                    type: GlobalStoreActionType.CREATE_NEW_LIST,
+                    payload: toBePsushed
+                });
+                store.history.push("/playlist/" + toBePsushed._id);
+            }
+        }
+        asyncCreateNewList();
+    }
+
+    store.deleteList = function () {
+        async function deleteListById()
+         {
+            let response = await api.deletePlay_List(store.listToBeDeleted);
+            if (response.data.success) {
+                store.loadIdNamePairs();
+                store.history.push("/");
+            }
+        }
+        deleteListById();
+    }
+    
+    store.ListObjectforDeletion = function (id) {
+        console.log(id);
+        storeReducer({
+            type: GlobalStoreActionType.MARK_LIST_FOR_DELETION,
+            payload: id,
+        });
+        store.OpenDelete_ListModal();
+    }
+    
+    
+    store.OpenDelete_ListModal = function() {
+        let del_modal = document.getElementById("delete-list-modal");
+        del_modal.classList.add("is-visible");
+    }
+    store.CloseDelete_ListModal = function() {
+        let del_modal = document.getElementById("delete-list-modal");
+        del_modal.classList.remove("is-visible");
+    }
+    store.addSong = function () {
+        async function asyncAddSong() {
+            let s = store.currentList;
+            s.songs.push( {
+                title: "untitled",
+                artist: "unknown",
+                youTubeId: "dQw4w9WgXcQ"
+            })
+
+            storeReducer({
+                type: GlobalStoreActionType.SET_CURRENT_LIST,
+                payload: s
+            });
+            await api.updatePlay_List(store.currentList._id,s)
+        }
+        asyncAddSong();
     }
 
     // THIS GIVES OUR STORE AND ITS REDUCER TO ANY COMPONENT THAT NEEDS IT
