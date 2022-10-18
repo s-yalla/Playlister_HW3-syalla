@@ -104,9 +104,9 @@ updatePlaylist = async (inp1, inp2) => {
                 message: '',
             })
         }
-        Playlist.name = mid.name
-        Playlist.items = mid.items
-        Playlist
+        playListObj.name = mid.name
+        playListObj.items = mid.items
+        playListObj
             .save()
             .then(() => {
                 return inp2.status(200).json({
