@@ -1,3 +1,4 @@
+import Delete_Song_Modal from "./Delete_Song_Modal";
 import EditToolbar from "./EditToolbar";
 /*
     Our Application's Banner, note we are using function-style
@@ -7,11 +8,19 @@ import EditToolbar from "./EditToolbar";
     @author McKilla Gorilla
 */
 function Banner(props) {
-    return (        
+    return ( 
+        <div>
+
+            <Delete_Song_Modal/>  
         <div id="playlister-banner">
             Playlister
             <EditToolbar />
         </div>
+        </div> 
+
+    
+        
+
     );
 }
 

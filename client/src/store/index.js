@@ -35,6 +35,7 @@ export const useGlobalStore = () => {
         newListCounter: 0,
         listNameActive: false,
         listToBeDeleted : null,
+        index :-1
 
     });
 
@@ -178,6 +179,8 @@ export const useGlobalStore = () => {
         asyncChangeListName(id);
     }
 
+   
+
     // THIS FUNCTION PROCESSES CLOSING THE CURRENTLY LOADED LIST
     store.closeCurrentList = function () {
         storeReducer({
@@ -280,6 +283,37 @@ export const useGlobalStore = () => {
         }
         deleteListById();
     }
+
+    store.updateAllList = function(id)
+    {
+        async function asyncChangeListName(id) {
+            let response = await api.getPlaylistById(id);
+            if (response.data.success) {
+                let playlist = response.data.playlist;
+                async function updateList(playlist) {
+                    response = await api.updatePlay_List(playlist._id, playlist);
+                    if (response.data.success) {
+                        async function getListPairs(playlist) {
+                            response = await api.getPlaylistPairs();
+                            if (response.data.success) {
+                                let pairsArray = response.data.idNamePairs;
+                                storeReducer({
+                                    type: GlobalStoreActionType.CHANGE_LIST_NAME,
+                                    payload: {
+                                        idNamePairs: pairsArray,
+                                        playlist: playlist
+                                    }
+                                });
+                            }
+                        }
+                        getListPairs(playlist);
+                    }
+                }
+                updateList(playlist);
+            }
+        }
+        asyncChangeListName(id);
+    }
     
     store.ListObjectforDeletion = function (id) {
         console.log(id);
@@ -290,6 +324,30 @@ export const useGlobalStore = () => {
         store.OpenDelete_ListModal();
     }
     
+    store.moveItem = function (ind1, ind2) {
+        ind1 -= 1;
+        ind2 -= 1;
+
+        if (ind1 < ind2) {
+            let temp = store.currentList.songs[ind1];
+            for (let i = ind1; i < ind2; i++) {
+                store.currentList.songs[i] = store.currentList.songs[i + 1];
+            }
+            store.currentList.songs[ind2] = temp;
+        }
+        else if (ind1 > ind2) {
+            let temp = store.currentList.songs[ind1];
+            for (let i = ind1; i > ind2; i--) {
+                store.currentList.songs[i] = store.currentList.songs[i - 1];
+            }
+            store.currentList.songs[ind2] = temp;
+        }
+        store.updateAllList(store.currentList._id);
+        // NOW MAKE IT OFFICIAL
+}
+   
+        
+    
     
     store.OpenDelete_ListModal = function() {
         let del_modal = document.getElementById("delete-list-modal");
@@ -297,6 +355,15 @@ export const useGlobalStore = () => {
     }
     store.CloseDelete_ListModal = function() {
         let del_modal = document.getElementById("delete-list-modal");
+        del_modal.classList.remove("is-visible");
+    }
+    store.OpenDelete_SongModal = function(ind) {
+        store.index = ind;
+        let del_modal = document.getElementById("delete-song-modal");
+        del_modal.classList.add("is-visible");
+    }
+    store.CloseDelete_SongModal = function() {
+        let del_modal = document.getElementById("delete-song-modal");
         del_modal.classList.remove("is-visible");
     }
     store.addSong = function () {
@@ -316,6 +383,24 @@ export const useGlobalStore = () => {
         }
         asyncAddSong();
     }
+    store.addSongUpdate = function () {
+        async function asyncAddSongUpdate() {
+            var val = await api.updatePlay_List(store.currentList._id,store.currentList);
+            
+            if (val.data.success){
+
+                storeReducer({
+                    type: GlobalStoreActionType.SET_CURRENT_LIST,
+                    payload: store.currentList
+                });
+            }
+            
+        }
+        asyncAddSongUpdate();
+    }
+
+    
+
 
     // THIS GIVES OUR STORE AND ITS REDUCER TO ANY COMPONENT THAT NEEDS IT
     return { store, storeReducer };

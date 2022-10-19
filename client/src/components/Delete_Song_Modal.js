@@ -6,7 +6,7 @@ import { GlobalStoreContext } from '../store'
     
     @author Sadashiva Yalla
 */
-function Delete_List_Modal() {
+function Delete_Song_Modal() {
     const { store } = useContext(GlobalStoreContext);
     
 
@@ -15,10 +15,10 @@ function Delete_List_Modal() {
     function handleListDeletion(varProp) {
         varProp.stopPropagation();
         store.deleteList(store.markListForDeletionId)
-        store.closeDeleteListModal()
+        store.CloseDelete_SongModal()
     }
     function handleListDeletionReverse() {
-        store.closeDeleteListModal()
+        store.CloseDelete_SongModal()
     }
     
     return (
@@ -28,16 +28,16 @@ function Delete_List_Modal() {
             data-animation="slideInOutLeft">
             <div className="modal-root" id='verify-remove-song-root'>
                 <div className="modal-north">
-                    Remove {name}?
+                    Remove ?
                 </div>
                 <div className="modal-center">
                     <div className="modal-center-content">
-                        Are you sure you wish to permanently remove {name} from the playlist?
+                        Are you sure you wish to permanently remove  from the playlist?
                     </div>
                 </div>
                 <div className="modal-south">
-                    <input type="button" id="remove-song-confirm-button" className="modal-button" onClick={handleDeleteSong} value='Confirm' />
-                    <input type="button" id="remove-song-cancel-button" className="modal-button" onClick={handleCancelDeleteSong} value='Cancel' />
+                    <input type="button" id="remove-song-confirm-button" className="modal-button" onClick={handleListDeletion} value='Confirm' />
+                    <input type="button" id="remove-song-cancel-button" className="modal-button" onClick={handleListDeletionReverse} value='Cancel' />
                 </div>
             </div>
         </div>
